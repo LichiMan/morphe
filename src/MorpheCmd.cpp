@@ -19,6 +19,10 @@ const char *queryFlag = "-q", *queryLongFlag = "-query";
 // -----------------------------------------------------------------------------
 
 
+//
+// Description:
+//    This method add weight attributes to the node deformer.
+//
 void MorpheCmd::AddWeight(MObject &obj, MObject &objDeformer, unsigned int &idx)
 {
    MFnDependencyNode fnObj(obj);
@@ -32,6 +36,10 @@ void MorpheCmd::AddWeight(MObject &obj, MObject &objDeformer, unsigned int &idx)
 // -----------------------------------------------------------------------------
 
 
+//
+// Description:
+//    This method sets the name for the target.
+//
 void MorpheCmd::SetTargetName(MObject &objDeformer, unsigned int &idxTarget, MString &name)
 {
    MFnDependencyNode fnDeformer(objDeformer);
@@ -41,11 +49,17 @@ void MorpheCmd::SetTargetName(MObject &objDeformer, unsigned int &idxTarget, MSt
 
    plugName.setValue(name);
    
+   // DEBUG: Delete in the future.
    MGlobal::displayInfo(name);
+   // DEBUG: Delete in the future.
 }
 // -----------------------------------------------------------------------------
 
 
+//
+// Description:
+//    This method sets the IDs of weights involved for a specific target.
+//
 void MorpheCmd::SetTargetWeight(MObject &objDeformer, unsigned int &idxTarget, MIntArray &idxWeight)
 {
    MFnDependencyNode fnDeformer(objDeformer);
@@ -57,13 +71,20 @@ void MorpheCmd::SetTargetWeight(MObject &objDeformer, unsigned int &idxTarget, M
    MObject           oWt = fnWt.create(idxWeight);
    plugWt.setValue(oWt);
    
+   // DEBUG: Delete in the future.
+   MFnIntArrayData   test(plugWt.asMObject());
    MString tmpStr("Weight: ");
-   tmpStr = tmpStr + plugWt.asString();
+   tmpStr = tmpStr + test[0];
    MGlobal::displayInfo(tmpStr);
+   // DEBUG: Delete in the future.
 }
 // -----------------------------------------------------------------------------
 
 
+//
+// Description:
+//    This method connect a target mesh to the deformer.
+//
 void MorpheCmd::ConnectInputs(MObject &obj, MObject &objDeformer, unsigned int &idx)
 {
    MDGModifier       modifier;
@@ -84,6 +105,13 @@ void MorpheCmd::ConnectInputs(MObject &obj, MObject &objDeformer, unsigned int &
 // -----------------------------------------------------------------------------
 
 
+//
+// Description:
+//    This method defines command flags.
+//
+// Return Values:
+//    MSyntax
+//
 MSyntax MorpheCmd::newSyntax()
 {
    MSyntax syntax;
@@ -96,6 +124,14 @@ MSyntax MorpheCmd::newSyntax()
 // -----------------------------------------------------------------------------
 
 
+//
+// Description:
+//    This is the main method command.
+//
+// Return Values:
+//    MS::kSuccess
+//    MS::kFailure
+//
 MStatus MorpheCmd::doIt (const MArgList &args)
 {
    MStatus status;

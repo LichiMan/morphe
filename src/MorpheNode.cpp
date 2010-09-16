@@ -54,9 +54,7 @@ MStatus MorpheNode::GetWeights(MDataBlock &data, MFloatArray &weights)
    MArrayDataHandle hArrWeight = data.inputArrayValue(aWeight);
    unsigned int uWeightCount = hArrWeight.elementCount();
    if (uWeightCount == 0)
-   {
       return MS::kSuccess;
-   }
 
    unsigned int i;
    unsigned uWtIdx;
@@ -187,7 +185,7 @@ MStatus MorpheNode::deform(MDataBlock &data, MItGeometry &itGeo, const MMatrix &
 
       ptOrig = itGeo.position();
 
-      ptDef = (ptOrig + deltas[itGeo.index()]) * wt;
+      ptDef = ptOrig + (deltas[itGeo.index()] * wt);
       itGeo.setPosition(ptDef);
    }
 

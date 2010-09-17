@@ -18,12 +18,12 @@ MTypeId MorpheNode::id(MORPHE_ID);
 // Attributes
 //
 MObject MorpheNode::aWeight;
-MObject MorpheNode::aInputTargetItem;
-MObject MorpheNode::aInputTargetName;
-MObject MorpheNode::aInputTargetWeights;
-MObject MorpheNode::aInputTargetGeometry;
-MObject MorpheNode::aInputTargetPoints;
-MObject MorpheNode::aInputTargetComponents;
+MObject MorpheNode::aMorpheItem;
+MObject MorpheNode::aMorpheName;
+MObject MorpheNode::aMorpheWeights;
+MObject MorpheNode::aMorpheGeometry;
+MObject MorpheNode::aMorphePoints;
+MObject MorpheNode::aMorpheComponents;
 // -----------------------------------------------------------------------------
 
 
@@ -90,11 +90,11 @@ MStatus MorpheNode::GetTargetsDeltas(MDataBlock &data, MItGeometry &itGeo, float
    MPointArray deltasOrig;
    itGeo.allPositions(deltasOrig);
 
-   MArrayDataHandle hArrInputTargetItem = data.inputArrayValue(aInputTargetItem, &status);
+   MArrayDataHandle hArrMorpheItem = data.inputArrayValue(aMorpheItem, &status);
    if (status != MS::kSuccess)
       return MS::kSuccess;
 
-   unsigned int targetArrayCount = hArrInputTargetItem.elementCount();
+   unsigned int targetArrayCount = hArrMorpheItem.elementCount();
    if (targetArrayCount == 0)
       return MS::kSuccess;
 
@@ -105,15 +105,15 @@ MStatus MorpheNode::GetTargetsDeltas(MDataBlock &data, MItGeometry &itGeo, float
    unsigned int j;
    for(i = 0; i < targetArrayCount; i++)
    {
-      uItemIdx = hArrInputTargetItem.elementIndex(); // Index Item
+      uItemIdx = hArrMorpheItem.elementIndex(); // Index Item
 
-      MDataHandle hInputTargetItem = hArrInputTargetItem.inputValue(); // Get compound element Item
-      MObject oInputTargetGeometry = hInputTargetItem.child(aInputTargetGeometry).asMesh();
-      if(oInputTargetGeometry.isNull())
+      MDataHandle hMorpheItem = hArrMorpheItem.inputValue(); // Get compound element Item
+      MObject oMorpheGeometry = hMorpheItem.child(aMorpheGeometry).asMesh();
+      if(oMorpheGeometry.isNull())
          return MS::kSuccess;
 
-      MFnMesh fnInputTargetGeometry(oInputTargetGeometry);
-      fnInputTargetGeometry.getPoints(targetPts);
+      MFnMesh fnMorpheGeometry(oMorpheGeometry);
+      fnMorpheGeometry.getPoints(targetPts);
 
       wt = weights[uItemIdx] * fEnv;
 
@@ -126,7 +126,7 @@ MStatus MorpheNode::GetTargetsDeltas(MDataBlock &data, MItGeometry &itGeo, float
       }
       
       targetPts.clear();
-      hArrInputTargetItem.next();
+      hArrMorpheItem.next();
    }
 
    return MS::kSuccess;
@@ -234,46 +234,46 @@ MStatus MorpheNode::initialize()
    nAttr.setSoftMin(0.0);
    nAttr.setSoftMax(1.0);
 
-   aInputTargetName = tAttr.create("inputTargetName", "itn", MFnData::kString);
+   aMorpheName = tAttr.create("morpheName", "itn", MFnData::kString);
    tAttr.setStorable(true);
    tAttr.setConnectable(false);
 
-   aInputTargetGeometry = tAttr.create("inputTargetGeometry", "itg", MFnData::kMesh);
+   aMorpheGeometry = tAttr.create("morpheGeometry", "itg", MFnData::kMesh);
    tAttr.setStorable(false);
    tAttr.setConnectable(true);
 
-   aInputTargetPoints = tAttr.create("inputTargetPoints", "itp", MFnData::kPointArray);
+   aMorphePoints = tAttr.create("morphePoints", "itp", MFnData::kPointArray);
    tAttr.setStorable(true);
    tAttr.setConnectable(true);
 
-   aInputTargetComponents = tAttr.create("inputTargetComponents", "itc", MFnData::kComponentList);
+   aMorpheComponents = tAttr.create("morpheComponents", "itc", MFnData::kComponentList);
    tAttr.setStorable(true);
    tAttr.setConnectable(true);
 
-   aInputTargetWeights = tAttr.create("inputTargetWeights", "itw", MFnData::kIntArray);
+   aMorpheWeights = tAttr.create("morpheWeights", "itw", MFnData::kIntArray);
    nAttr.setStorable(true);
    nAttr.setConnectable(false);
 
-   aInputTargetItem = cAttr.create("inputTargetItem", "iti");
+   aMorpheItem = cAttr.create("morpheItem", "iti");
    cAttr.setArray(true);
    cAttr.setUsesArrayDataBuilder(true);
    cAttr.setStorable(true);
    cAttr.setConnectable(true);
-   cAttr.addChild(aInputTargetName);
-   cAttr.addChild(aInputTargetGeometry);
-   cAttr.addChild(aInputTargetPoints);
-   cAttr.addChild(aInputTargetComponents);
-   cAttr.addChild(aInputTargetWeights);
+   cAttr.addChild(aMorpheName);
+   cAttr.addChild(aMorpheGeometry);
+   cAttr.addChild(aMorphePoints);
+   cAttr.addChild(aMorpheComponents);
+   cAttr.addChild(aMorpheWeights);
 
    addAttribute(aWeight);
-   addAttribute(aInputTargetItem);
+   addAttribute(aMorpheItem);
 
    attributeAffects(aWeight, outputGeom);
-   attributeAffects(aInputTargetItem, outputGeom);
-   attributeAffects(aInputTargetGeometry, outputGeom);
-   attributeAffects(aInputTargetPoints, outputGeom);
-   attributeAffects(aInputTargetComponents, outputGeom);
-   attributeAffects(aInputTargetWeights, outputGeom);
+   attributeAffects(aMorpheItem, outputGeom);
+   attributeAffects(aMorpheGeometry, outputGeom);
+   attributeAffects(aMorphePoints, outputGeom);
+   attributeAffects(aMorpheComponents, outputGeom);
+   attributeAffects(aMorpheWeights, outputGeom);
 
    // Make the deformer weights paintable
    MGlobal::executeCommand( "makePaintable -attrType multiFloat -sm deformer morphe weights;" );

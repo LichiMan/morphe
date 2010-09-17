@@ -54,12 +54,12 @@ class MorpheNode : public MPxDeformerNode
       // Input Attributes
       static MObject aWeight;
    
-      static MObject aInputTargetItem;
-      static MObject aInputTargetName;
-      static MObject aInputTargetGeometry;
-      static MObject aInputTargetPoints;
-      static MObject aInputTargetComponents;
-      static MObject aInputTargetWeights;
+      static MObject aMorpheItem;
+      static MObject aMorpheName;
+      static MObject aMorpheGeometry;
+      static MObject aMorphePoints;
+      static MObject aMorpheComponents;
+      static MObject aMorpheWeights;
 };
 // -----------------------------------------------------------------------------
 

@@ -43,9 +43,9 @@ void MorpheCmd::AddWeight(MObject &obj, MObject &objDeformer, unsigned int &idx)
 void MorpheCmd::SetTargetName(MObject &objDeformer, unsigned int &idxTarget, MString &name)
 {
    MFnDependencyNode fnDeformer(objDeformer);
-   MPlug             plugArrItem(fnDeformer.findPlug(MorpheNode::aInputTargetItem));
+   MPlug             plugArrItem(fnDeformer.findPlug(MorpheNode::aMorpheItem));
    MPlug             plugItem = plugArrItem.elementByLogicalIndex(idxTarget);
-   MPlug             plugName  = plugItem.child(MorpheNode::aInputTargetName);
+   MPlug             plugName  = plugItem.child(MorpheNode::aMorpheName);
 
    plugName.setValue(name);
    
@@ -63,9 +63,9 @@ void MorpheCmd::SetTargetName(MObject &objDeformer, unsigned int &idxTarget, MSt
 void MorpheCmd::SetTargetWeight(MObject &objDeformer, unsigned int &idxTarget, MIntArray &idxWeight)
 {
    MFnDependencyNode fnDeformer(objDeformer);
-   MPlug             plugArrItem(fnDeformer.findPlug(MorpheNode::aInputTargetItem));
+   MPlug             plugArrItem(fnDeformer.findPlug(MorpheNode::aMorpheItem));
    MPlug             plugItem = plugArrItem.elementByLogicalIndex(idxTarget);
-   MPlug             plugWt   = plugItem.child(MorpheNode::aInputTargetWeights);
+   MPlug             plugWt   = plugItem.child(MorpheNode::aMorpheWeights);
 
    MFnIntArrayData   fnWt;
    MObject           oWt = fnWt.create(idxWeight);
@@ -95,9 +95,9 @@ void MorpheCmd::ConnectInputs(MObject &obj, MObject &objDeformer, unsigned int &
    MPlug             plugWorldMesh    = plugArrWorldMesh.elementByLogicalIndex(0); // First instance is requested for mesh shapes.
 
    MFnDependencyNode fnDeformer(objDeformer);
-   MPlug             plugArrItem(fnDeformer.findPlug(MorpheNode::aInputTargetItem));
+   MPlug             plugArrItem(fnDeformer.findPlug(MorpheNode::aMorpheItem));
    MPlug             plugItem = plugArrItem.elementByLogicalIndex(idx);
-   MPlug             plugGeo  = plugItem.child(MorpheNode::aInputTargetGeometry);
+   MPlug             plugGeo  = plugItem.child(MorpheNode::aMorpheGeometry);
 
    modifier.connect(plugWorldMesh, plugGeo);
    modifier.doIt();

@@ -49,25 +49,34 @@ MorpheNode::~MorpheNode() {}
 //    MS::kSuccess
 //    MS::kFailure
 //
-MStatus MorpheNode::GetWeights(MDataBlock &data, MFloatArray &weights)
+MStatus MorpheNode::GetWeights(MDataBlock &data, MFnIntArrayData &ids, float &wt)
 {
+   // Get array of weights
    MArrayDataHandle hArrWeight = data.inputArrayValue(aWeight);
+
+   // If no weights, exit
    unsigned int uWeightCount = hArrWeight.elementCount();
    if (uWeightCount == 0)
-      return MS::kSuccess;
-
-   unsigned int i;
-   unsigned uWtIdx;
-   for(i = 0; i < uWeightCount; i++)
    {
-      uWtIdx = hArrWeight.elementIndex(); // Index Item
-      MDataHandle hWt = hArrWeight.inputValue();
+      wt = 0.0;
+      return MS::kSuccess;
+   }
 
-      if(weights.length() < (uWtIdx + 1))
-         weights.setLength(uWtIdx + 1);
-      weights[uWtIdx] = hWt.asFloat();
+   // If no Id weights, exit
+   unsigned int uWeightIdsCount = ids.length();
+   if (uWeightIdsCount == 0)
+   {
+      wt = 0.0;
+      return MS::kSuccess;
+   }
 
-      hArrWeight.next();
+   hArrWeight.jumpToArrayElement(ids[0]);
+   wt = hArrWeight.inputValue().asFloat();
+
+   for(unsigned int i = 1; i < uWeightIdsCount; i++)
+   {
+      hArrWeight.jumpToArrayElement(ids[i]);
+      wt *= hArrWeight.inputValue().asFloat();
    }
    return MS::kSuccess;
 }
@@ -82,14 +91,16 @@ MStatus MorpheNode::GetWeights(MDataBlock &data, MFloatArray &weights)
 //    MS::kSuccess
 //    MS::kFailure
 //
-MStatus MorpheNode::GetTargetsDeltas(MDataBlock &data, MItGeometry &itGeo, float &fEnv, MFloatArray &weights, MPointArray &deltas)
+MStatus MorpheNode::GetTargetsDeltas(MDataBlock &data, MItGeometry &itGeo, float &fEnv, MPointArray &deltas)
 {
    MStatus status;
-
    MPointArray targetPts;
+
+   // Get original deltas
    MPointArray deltasOrig;
    itGeo.allPositions(deltasOrig);
 
+   // Get array of morphes
    MArrayDataHandle hArrMorpheItem = data.inputArrayValue(aMorpheItem, &status);
    if (status != MS::kSuccess)
       return MS::kSuccess;
@@ -99,32 +110,42 @@ MStatus MorpheNode::GetTargetsDeltas(MDataBlock &data, MItGeometry &itGeo, float
       return MS::kSuccess;
 
    // Go through each target
-   unsigned uItemIdx = 0;
+   unsigned int uItemIdx = 0;
    float wt;
-   unsigned int i;
-   unsigned int j;
-   for(i = 0; i < targetArrayCount; i++)
+   for(unsigned int i = 0; i < targetArrayCount; i++)
    {
       uItemIdx = hArrMorpheItem.elementIndex(); // Index Item
 
       MDataHandle hMorpheItem = hArrMorpheItem.inputValue(); // Get compound element Item
-      MObject oMorpheGeometry = hMorpheItem.child(aMorpheGeometry).asMesh();
-      if(oMorpheGeometry.isNull())
-         return MS::kSuccess;
 
-      MFnMesh fnMorpheGeometry(oMorpheGeometry);
-      fnMorpheGeometry.getPoints(targetPts);
+      // Get Weights
+      MObject oMorpheWeights = hMorpheItem.child(aMorpheWeights).data();
+      MFnIntArrayData arrMorpheWeightsIds(oMorpheWeights);
+      GetWeights(data, arrMorpheWeightsIds, wt);
 
-      wt = weights[uItemIdx] * fEnv;
-
-      for(j = 0; j < targetPts.length(); j++)
+      if(wt != 0.0)
       {
-         if(i == 0)
-            deltas.set((targetPts[j] - deltasOrig[j]) * wt, j);
+         MObject oMorpheGeometry = hMorpheItem.child(aMorpheGeometry).asMesh();
+         if(oMorpheGeometry.isNull())
+         {
+            return MS::kSuccess;
+         }
          else
-            deltas.set(deltas[j] + (targetPts[j] - deltasOrig[j]) * wt, j);
-      }
-      
+         {
+            MFnMesh fnMorpheGeometry(oMorpheGeometry);
+            fnMorpheGeometry.getPoints(targetPts);
+
+            wt = wt * fEnv;
+
+            for(unsigned int j = 0; j < targetPts.length(); j++)
+            {
+               if(arrMorpheWeightsIds.length() == 1)
+                  deltas.set(deltas[j] + (targetPts[j] - deltasOrig[j]) * wt, j);
+               else
+                  deltas.set(deltas[j] + (targetPts[j] - deltasOrig[j]) * wt, j);    // TODO
+            }
+         }
+      }   
       targetPts.clear();
       hArrMorpheItem.next();
    }
@@ -162,14 +183,9 @@ MStatus MorpheNode::deform(MDataBlock &data, MItGeometry &itGeo, const MMatrix &
    if(fEnv <= 0.0) // If off... done!
       return MS::kSuccess;
 
-   // Get Weights
-   MFloatArray targetWts;
-   GetWeights(data, targetWts);
-
    // Get Targets
-   MPointArray deltas;
-   deltas.setLength(itGeo.count());
-   GetTargetsDeltas(data, itGeo, fEnv, targetWts, deltas);
+   MPointArray deltas(itGeo.count());
+   GetTargetsDeltas(data, itGeo, fEnv, deltas);
 
    // Iterate through each point in the geometry
    MPoint   ptOrig;

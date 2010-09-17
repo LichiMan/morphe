@@ -15,6 +15,7 @@
 #include <maya/MFloatArray.h>
 #include <maya/MFnCompoundAttribute.h>
 #include <maya/MFnMesh.h>
+#include <maya/MFnIntArrayData.h>
 #include <maya/MFnNumericAttribute.h>
 #include <maya/MFnTypedAttribute.h>
 #include <maya/MGlobal.h>
@@ -36,8 +37,8 @@ class MorpheNode : public MPxDeformerNode
                         MorpheNode();
       virtual           ~MorpheNode(); 
    
-      static  MStatus   GetWeights(MDataBlock &data, MFloatArray &weights);
-      static  MStatus   GetTargetsDeltas(MDataBlock &data, MItGeometry &itGeo, float &fEnv, MFloatArray &weights, MPointArray &deltas);
+      static  MStatus   GetWeights(MDataBlock &data, MFnIntArrayData &ids, float &wt);
+      static  MStatus   GetTargetsDeltas(MDataBlock &data, MItGeometry &itGeo, float &fEnv, MPointArray &deltas);
       virtual MStatus   deform(MDataBlock &data, MItGeometry &itGeo, const MMatrix &localToWorldMatrix, unsigned int mIndex);
    
       static  void*     creator();

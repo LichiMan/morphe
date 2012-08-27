@@ -12,14 +12,6 @@
 
 
 //
-// Flags
-//
-const char *editFlag = "-e", *editLongFlag = "-edit";
-const char *queryFlag = "-q", *queryLongFlag = "-query";
-// -----------------------------------------------------------------------------
-
-
-//
 // Description:
 //    This method add weight attributes to the node deformer.
 //
@@ -72,10 +64,10 @@ void MorpheCmd::SetTargetWeight(MObject &objDeformer, unsigned int &idxTarget, M
    plugWt.setValue(oWt);
    
    // DEBUG: Delete in the future.
-   MFnIntArrayData   test(plugWt.asMObject());
-   MString tmpStr("Weight: ");
-   tmpStr = tmpStr + test[0];
-   MGlobal::displayInfo(tmpStr);
+   //MFnIntArrayData   test(plugWt.asMObject());
+   //MString tmpStr("Weight: ");
+   //tmpStr = tmpStr + test[0];
+   //MGlobal::displayInfo(tmpStr);
    // DEBUG: Delete in the future.
 }
 // -----------------------------------------------------------------------------
@@ -107,6 +99,21 @@ void MorpheCmd::ConnectInputs(MObject &obj, MObject &objDeformer, unsigned int &
 
 //
 // Description:
+//    This method exists to give Maya a way to create new objects
+//      of this type. 
+//
+// Return Value:
+//    a new object of this type
+//
+void* MorpheCmd::creator()
+{
+   return new MorpheCmd();
+}
+// -----------------------------------------------------------------------------
+
+
+//
+// Description:
 //    This method defines command flags.
 //
 // Return Values:
@@ -116,10 +123,58 @@ MSyntax MorpheCmd::newSyntax()
 {
    MSyntax syntax;
 
-   syntax.addFlag(editFlag, editLongFlag, MSyntax::kNoArg);
-   syntax.addFlag(queryFlag, queryLongFlag, MSyntax::kNoArg);
+   // Query Mode
+
+   // Edit Mode
+   syntax.addFlag(kCreateMorphesFlag, kCreateMorphesFlagLong, MSyntax::kString);
+   //syntax.makeFlagMultiUse(kCreateMorphesFlag);
+
+   // Enable Query and Edit
+   syntax.enableQuery(true);
+   syntax.enableEdit(true);
 
 	return syntax;
+}
+// -----------------------------------------------------------------------------
+
+
+//
+// Description:
+//    This method parse arguments.
+//
+// Return Values:
+//    MSyntax
+//
+MStatus MorpheCmd::parseArgs(const MArgList &args)
+{
+   MStatus status;
+
+   MArgDatabase argData(syntax(), args, &status);
+
+   // -createMorphes [objectList]
+   if(argData.isFlagSet(kCreateMorphesFlag) && argData.isEdit())
+   {
+      // status = argData.getFlagArgument(kCreateMorphesFlag, 0, sCreateMorphes);
+      unsigned int uCmsPos = 0;
+      argData.getFlagArgumentPosition(kCreateMorphesFlag, 0, uCmsPos);
+      unsigned int uCmsArgPos = uCmsPos + 1;
+      sCreateMorphes = args.asStringArray(uCmsArgPos, &status);
+      if(status != MS::kSuccess)
+      {
+         MGlobal::displayError("-cms/createMorphes is missing a list of objects argument");
+         return status;
+      }
+      else
+      {
+         unsigned int i = 2;
+         //MGlobal::displayInfo(kk.asString());
+         MString tmpStr("Weight: ");
+         tmpStr = tmpStr + sCreateMorphes.length();
+         tmpStr = tmpStr + "     Position: " + uCmsPos;
+         MGlobal::displayInfo(tmpStr);
+      }
+   }
+   return MS::kSuccess;
 }
 // -----------------------------------------------------------------------------
 
@@ -136,19 +191,26 @@ MStatus MorpheCmd::doIt (const MArgList &args)
 {
    MStatus status;
 
+   status = parseArgs(args);
+   if(status != MS::kSuccess)
+      return status;
+
    MArgDatabase argData(syntax(), args);
 
-   if(argData.isFlagSet(editFlag))
-   {
-      MGlobal::displayInfo("edit mode");
-   }
-
-   if(argData.isFlagSet(queryFlag))
+   // Query Mode
+   if(argData.isQuery())
    {
       MGlobal::displayInfo("query mode");
    }
 
-   if(!argData.isFlagSet(editFlag) && !argData.isFlagSet(queryFlag))
+   // Edit Mode
+   if(argData.isEdit())
+   {
+      MGlobal::displayInfo("edit mode");
+   }
+
+   // Create Mode
+   if(!argData.isQuery() && !argData.isEdit())
    {
       MObject           obj;
       MFnDependencyNode fnObj;

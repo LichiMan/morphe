@@ -10,6 +10,7 @@
 // Includes
 //
 #include <maya/MArgDatabase.h>
+#include <maya/MArgList.h>
 #include <maya/MDagPath.h>
 #include <maya/MDGModifier.h>
 #include <maya/MFnDagNode.h>
@@ -37,14 +38,24 @@ public:
    static  void      SetTargetName(MObject &objDeformer, unsigned int &idxTarget, MString &name);
    static  void      SetTargetWeight(MObject &objDeformer, unsigned int &idxTarget, MIntArray &idxWeight);
    static  void      ConnectInputs(MObject &obj, MObject &objDeformer, unsigned int &idx);
-   virtual MStatus   doIt(const MArgList&);
+   virtual MStatus   doIt(const MArgList &args);
    static  MSyntax   newSyntax();
+   static  void*     creator();
 
-   static  void*     creator()
-   {
-      return new MorpheCmd();
-   }
+private:
+
+   MStatus           parseArgs(const MArgList &args);
+
+   MStringArray      sCreateMorphes;
 };
+// -----------------------------------------------------------------------------
+
+
+//
+// Syntax Flags
+//
+#define kCreateMorphesFlag        "-cms"
+#define kCreateMorphesFlagLong    "-createMorphes"
 // -----------------------------------------------------------------------------
 
 #endif
